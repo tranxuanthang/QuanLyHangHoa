@@ -48,7 +48,7 @@ public class QuanLyHangHoa {
     }
     
 }
-class HangHoa implements Serializable{
+class HangHoa {
     protected String tenHangHoa;
     protected Date ngaySanXuat;
     protected Date hanSuDung;

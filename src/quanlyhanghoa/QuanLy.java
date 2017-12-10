@@ -12,79 +12,21 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.Writer;
 import java.lang.reflect.Type;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
  * @author trant
  */
-public class QuanLyHangHoa {
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) throws ParseException, IOException, FileNotFoundException, ClassNotFoundException {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Chon hanh dong:\n1. Them mat hang\n2. Xem danh sach\n3. Sua doi\n4. Xoa\n5. Tim kiem");
-        int action = Integer.parseInt(sc.nextLine());
-        if(action == 1){
-            QuanLy.them();
-        } else if (action == 2){
-            QuanLy.hienthi();
-        } else if (action == 3){
-            QuanLy.suamathang();
-        } else if (action == 4){
-            QuanLy.xoamathang();
-        }
-    }
-    
-}
-class HangHoa {
-    protected String tenHangHoa;
-    protected Date ngaySanXuat;
-    protected Date hanSuDung;
-    protected int giaThanh;
-    protected HangHoa(String ten, Date nsx,Date hsd, int tien){
-        tenHangHoa = ten;
-        ngaySanXuat = nsx;
-        hanSuDung = hsd;
-        giaThanh = tien;
-    }
-    protected String getTen(){
-        return tenHangHoa;
-    }
-    protected String getNsx (){
-        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        String ngaySanXuatFormatted = formatter.format(ngaySanXuat);
-        return ngaySanXuatFormatted;
-    }
-    protected String getHsd (){
-        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        String hanSuDungFormatted = formatter.format(hanSuDung);
-        return hanSuDungFormatted;
-    }
-    protected Date getNsxRaw (){
-        return ngaySanXuat;
-    }
-    protected Date getHsdRaw (){
-        return hanSuDung;
-    }
-    protected int getGia (){
-        return giaThanh;
-    }
-    protected void editTen(String newTen){
-        tenHangHoa = newTen;
-    }
-}
 class QuanLy {
     protected static String idHangHoa;
     protected static String tenHangHoa;
@@ -92,7 +34,7 @@ class QuanLy {
     protected static Date hanSuDung;
     protected static int giaThanh;
     
-    protected static void them() throws ParseException, FileNotFoundException, IOException, ClassNotFoundException{
+    protected static void them() throws ParseException, IOException, ClassNotFoundException{
         
         Scanner sc = new Scanner(System.in);
         System.out.print("Nhap ten hang hoa:");
@@ -100,22 +42,34 @@ class QuanLy {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         dateFormat.setLenient(false);
         System.out.print("Nhap ngay san xuat (d/m/Y):");
-        ngaySanXuat = dateFormat.parse(sc.nextLine());
+        try {
+            ngaySanXuat = dateFormat.parse(sc.nextLine());
+        }
+        catch (ParseException e){
+            System.out.print("Dinh dang ngay thang sai!");
+            throw e;
+        }
         System.out.print("Nhap ngay het han (d/m/Y):");
-        hanSuDung = dateFormat.parse(sc.nextLine());
+        try {
+            hanSuDung = dateFormat.parse(sc.nextLine());
+        }
+        catch (ParseException e){
+            System.out.print("Dinh dang ngay thang sai!");
+            throw e;
+        }
         System.out.print("Nhap gia thanh:");
         giaThanh = Integer.parseInt(sc.nextLine());
         
         HangHoa hangHoa = new HangHoa(tenHangHoa,ngaySanXuat,hanSuDung,giaThanh);
         
-        System.out.println("\nDa luu thanh cong!");
-        System.out.println("Ten: "+hangHoa.getTen());
-        System.out.println("NSX | HSD: "+hangHoa.getNsx()+" | "+hangHoa.getHsd());
-        System.out.println("Gia: "+hangHoa.getGia());
-        
         Gson gson = new Gson();
-        JsonReader jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
-        
+        JsonReader jsonfile;
+        try {
+            jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
+        } catch (FileNotFoundException e){
+            System.out.print("File chua duoc tao!");
+            throw e;
+        }
         Type founderListType = new TypeToken<ArrayList<HangHoa>>(){}.getType();
         List<HangHoa> danhSach;
         danhSach = gson.fromJson(jsonfile, founderListType);
@@ -125,12 +79,24 @@ class QuanLy {
         danhSach.add(hangHoa);
         try (Writer writer = new FileWriter("D:\\hanghoa.json")) {
             gson.toJson(danhSach, writer);
+        } catch (FileNotFoundException e) {
+            System.out.print("File chua duoc tao!");
         }
+        System.out.println("\nDa luu thanh cong!");
+        System.out.println("Ten: "+hangHoa.getTen());
+        System.out.println("NSX | HSD: "+hangHoa.getNsx()+" | "+hangHoa.getHsd());
+        System.out.println("Gia: "+hangHoa.getGia());
     }
     
     protected static void hienthi() throws FileNotFoundException{
         Gson gson = new Gson();
-        JsonReader jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
+        JsonReader jsonfile;
+        try {
+            jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
+        } catch (FileNotFoundException e){
+            System.out.print("File chua duoc tao!");
+            throw e;
+        }
         
         Type founderListType = new TypeToken<ArrayList<HangHoa>>(){}.getType();
         List<HangHoa> danhSach = gson.fromJson(jsonfile, founderListType);
@@ -147,7 +113,13 @@ class QuanLy {
     protected static void xoamathang() throws FileNotFoundException, IOException{
         Scanner sc = new Scanner(System.in);
         Gson gson = new Gson();
-        JsonReader jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
+        JsonReader jsonfile;
+        try {
+            jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
+        } catch (FileNotFoundException e){
+            System.out.print("File chua duoc tao!");
+            throw e;
+        }
         
         Type founderListType = new TypeToken<ArrayList<HangHoa>>(){}.getType();
         List<HangHoa> danhSach = gson.fromJson(jsonfile, founderListType);
@@ -171,7 +143,13 @@ class QuanLy {
     protected static void suamathang() throws FileNotFoundException, IOException, ParseException{
         Scanner sc = new Scanner(System.in);
         Gson gson = new Gson();
-        JsonReader jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
+        JsonReader jsonfile;
+        try {
+            jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
+        } catch (FileNotFoundException e){
+            System.out.print("File chua duoc tao!");
+            throw e;
+        }
         
         Type founderListType = new TypeToken<ArrayList<HangHoa>>(){}.getType();
         List<HangHoa> danhSach = gson.fromJson(jsonfile, founderListType);
@@ -209,6 +187,36 @@ class QuanLy {
         try (Writer writer = new FileWriter("D:\\hanghoa.json")) {
             gson.toJson(danhSach, writer);
             System.out.println("Sua mat hang "+sua+"thanh cong!");
+        }
+    }
+    protected static void timkiem() throws FileNotFoundException{
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Tim kiem hang hoa theo ten.\nNhap ten muon tim kiem:");
+        String tim = sc.nextLine();
+        String patternString = ".*"+tim+".*";
+        Pattern pattern = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE);
+        Gson gson = new Gson();
+        JsonReader jsonfile;
+        try {
+            jsonfile = new JsonReader(new FileReader("D:\\hanghoa.json"));
+        } catch (FileNotFoundException e){
+            System.out.print("File chua duoc tao!");
+            throw e;
+        }
+        
+        Type founderListType = new TypeToken<ArrayList<HangHoa>>(){}.getType();
+        List<HangHoa> danhSach = gson.fromJson(jsonfile, founderListType);
+        System.out.println("\nKet qua tim kiem:");
+        int dem = 1;
+        for(HangHoa hanghoa : danhSach) {
+            Matcher matcher = pattern.matcher(hanghoa.getTen());
+            boolean isMatched = matcher.matches();
+            if(isMatched==true){
+                System.out.println(dem+". "+hanghoa.getTen());
+                System.out.println("\tNSX | HSD: "+hanghoa.getNsx()+" | "+hanghoa.getHsd());
+                System.out.println("\tGia: "+hanghoa.getGia()+" VND");
+            }
+            dem++;
         }
     }
 }

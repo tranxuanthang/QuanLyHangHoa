@@ -34,7 +34,7 @@ class QuanLy {
     protected static Date hanSuDung;
     protected static int giaThanh;
     
-    protected static void them() throws ParseException, IOException, ClassNotFoundException{
+    protected static void them() throws ParseException, IOException, ClassNotFoundException, HsdException{
         
         Scanner sc = new Scanner(System.in);
         System.out.print("Nhap ten hang hoa:");
@@ -56,6 +56,9 @@ class QuanLy {
         catch (ParseException e){
             System.out.print("Dinh dang ngay thang sai!");
             throw e;
+        }
+        if(ngaySanXuat.getTime()>hanSuDung.getTime()){
+            throw new HsdException();
         }
         System.out.print("Nhap gia thanh:");
         giaThanh = Integer.parseInt(sc.nextLine());

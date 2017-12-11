@@ -18,7 +18,7 @@ public class Menu {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws ParseException, IOException, FileNotFoundException, ClassNotFoundException {
+    public static void main(String[] args) throws ParseException, IOException, FileNotFoundException, ClassNotFoundException, HsdException {
         Scanner sc = new Scanner(System.in);
         System.out.println("Chon hanh dong:\n1. Them mat hang\n2. Xem danh sach\n3. Sua doi\n4. Xoa\n5. Tim kiem");
         int action = Integer.parseInt(sc.nextLine());
@@ -33,5 +33,11 @@ public class Menu {
         } else if (action == 5){
             QuanLy.timkiem();
         }
+    }
+}
+
+class HsdException extends Exception{
+    public HsdException(){
+        super("Loi: Ngay san xuat lon hon han su dung!");
     }
 }
